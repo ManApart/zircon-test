@@ -1,20 +1,7 @@
-
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
-import org.hexworks.zircon.api.AppConfigs
-import org.hexworks.zircon.api.Blocks
-import org.hexworks.zircon.api.Borders
-import org.hexworks.zircon.api.CP437TilesetResources
-import org.hexworks.zircon.api.ColorThemes
-import org.hexworks.zircon.api.Components
-import org.hexworks.zircon.api.GameComponents
-import org.hexworks.zircon.api.Positions
-import org.hexworks.zircon.api.Screens
-import org.hexworks.zircon.api.Shapes
-import org.hexworks.zircon.api.Sizes
-import org.hexworks.zircon.api.SwingApplications
-import org.hexworks.zircon.api.TileColors
-import org.hexworks.zircon.api.Tiles
+import org.hexworks.zircon.api.*
+import org.hexworks.zircon.api.color.ANSITileColor
 import org.hexworks.zircon.api.color.TileColor
 import org.hexworks.zircon.api.data.Block
 import org.hexworks.zircon.api.data.Position
@@ -26,6 +13,7 @@ import org.hexworks.zircon.api.game.GameArea
 import org.hexworks.zircon.api.game.ProjectionMode
 import org.hexworks.zircon.api.graphics.BoxType
 import org.hexworks.zircon.api.graphics.Symbols
+import org.hexworks.zircon.api.uievent.KeyCode
 import org.hexworks.zircon.api.uievent.KeyCode.DOWN
 import org.hexworks.zircon.api.uievent.KeyCode.LEFT
 import org.hexworks.zircon.api.uievent.KeyCode.PAGE_DOWN
@@ -33,11 +21,15 @@ import org.hexworks.zircon.api.uievent.KeyCode.PAGE_UP
 import org.hexworks.zircon.api.uievent.KeyCode.RIGHT
 import org.hexworks.zircon.api.uievent.KeyCode.UP
 import org.hexworks.zircon.api.uievent.KeyboardEventType
+import org.hexworks.zircon.api.uievent.Pass
 import org.hexworks.zircon.api.uievent.Processed
+import org.hexworks.zircon.examples.PlayerMoveExampleKotlin
 import org.slf4j.LoggerFactory
+import sun.audio.AudioPlayer
+import sun.audio.AudioPlayer.player
 import kotlin.random.Random
 
-object TopDownObliqueWorldExample {
+object AkMapTest {
 
     private val WORLD_SIZE = Sizes.create3DSize(100, 100, 100)
     private val VISIBLE_Z_LEVELS = 5
@@ -61,6 +53,11 @@ object TopDownObliqueWorldExample {
     private val BRIGHT_GREEN = TileColors.fromString("#deeed6")
     private val TRANSPARENT = TileColors.transparent()
 
+    private val PLAYER_TILE = Tiles.newBuilder()
+        .withBackgroundColor(ANSITileColor.BLACK)
+        .withForegroundColor(ANSITileColor.WHITE)
+        .withCharacter('@')
+        .buildCharacterTile()
 
     private val EMPTY = Tiles.empty()
     private val FLOOR = Tiles.defaultTile()
@@ -74,11 +71,14 @@ object TopDownObliqueWorldExample {
 
     private val GLASS = Tiles.defaultTile()
         .withCharacter(' ')
-        .withBackgroundColor(TileColors.create(
-            red = BLUE.red,
-            green = BLUE.green,
-            blue = BLUE.blue,
-            alpha = 125))
+        .withBackgroundColor(
+            TileColors.create(
+                red = BLUE.red,
+                green = BLUE.green,
+                blue = BLUE.blue,
+                alpha = 125
+            )
+        )
 
     private val ROOF_TOP = Tiles.defaultTile()
         .withCharacter(Symbols.DOUBLE_LINE_HORIZONTAL)
@@ -115,7 +115,8 @@ object TopDownObliqueWorldExample {
         Tiles.defaultTile()
             .withCharacter('"')
             .withBackgroundColor(DARK_GREEN)
-            .withForegroundColor(LIGHT_GREEN))
+            .withForegroundColor(LIGHT_GREEN)
+    )
 
     private fun grass() = Blocks.newBuilder<Tile>()
         .withEmptyTile(Tiles.empty())
@@ -173,12 +174,15 @@ object TopDownObliqueWorldExample {
     fun main(args: Array<String>) {
         (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger).level = Level.INFO
 
-        val screen = Screens.createScreenFor(SwingApplications.startTileGrid(
-            AppConfigs.newConfig()
-                .enableBetaFeatures()
-                .withDefaultTileset(CP437TilesetResources.rexPaint20x20())
-                .withDebugMode(true)
-                .build()))
+        val screen = Screens.createScreenFor(
+            SwingApplications.startTileGrid(
+                AppConfigs.newConfig()
+                    .enableBetaFeatures()
+                    .withDefaultTileset(CP437TilesetResources.rexPaint20x20())
+                    .withDebugMode(true)
+                    .build()
+            )
+        )
 
         val panel = Components.panel()
             .withSize(screen.size)
@@ -202,28 +206,6 @@ object TopDownObliqueWorldExample {
         screen.addComponent(panel)
         screen.display()
         screen.applyColorTheme(ColorThemes.forest())
-        screen.handleKeyboardEvents(KeyboardEventType.KEY_PRESSED) { event, _ ->
-            if (event.code == LEFT) {
-                ga.scrollOneLeft()
-            }
-            if (event.code == RIGHT) {
-                ga.scrollOneRight()
-            }
-            if (event.code == UP) {
-                ga.scrollOneForward()
-            }
-            if (event.code == DOWN) {
-                ga.scrollOneBackward()
-            }
-            if (event.code == PAGE_UP) {
-                ga.scrollOneUp()
-            }
-            if (event.code == PAGE_DOWN) {
-                ga.scrollOneDown()
-            }
-            Processed
-        }
-
         addGrass(ga)
 
         val goblinFront = BLOCK_BASE.createCopy().apply {
@@ -234,6 +216,8 @@ object TopDownObliqueWorldExample {
                 .withBackgroundColor(LIGHT_GREY)
                 .withForegroundColor(CREAM)
         }
+        ga.setBlockAt(Positions.create3DPosition(30, 10, 0), goblinFront)
+
         val trollLegs = BLOCK_BASE.createCopy().apply {
             front = Tiles.empty().withCharacter(Symbols.DOUBLE_LINE_VERTICAL)
                 .withBackgroundColor(TileColor.transparent())
@@ -247,15 +231,42 @@ object TopDownObliqueWorldExample {
                 .withBackgroundColor(LIGHT_GREY)
                 .withForegroundColor(CREAM)
         }
-        ga.setBlockAt(Positions.create3DPosition(30, 10, 0), goblinFront)
-
         ga.setBlockAt(Positions.create3DPosition(32, 10, 0), trollLegs)
         ga.setBlockAt(Positions.create3DPosition(32, 10, 1), trollTorso)
+
+//        val player =  Blocks.newBuilder<Tile>()
+//            .withLayers( PLAYER_TILE)
+//            .withEmptyTile(EMPTY)
+//            .build()
+
+
+        val player = Layers.newBuilder()
+            .withSize(Sizes.one())
+            .withOffset(Positions.create(screen.width / 2, screen.height / 2))
+            .build()
+            .fill(PLAYER_TILE)
+
+//        ga.setBlockAt(Positions.create3DPosition(screen.width / 2, 10, screen.height / 2), player)
+
+        screen.pushLayer(player)
 
 
         addHouse(ga, Positions.create(5, 5), Sizes.create(12, 8))
         addHouse(ga, Positions.create(40, 0), Sizes.create(9, 8))
         addHouse(ga, Positions.create(25, 20), Sizes.create(14, 6))
+
+
+        screen.handleKeyboardEvents(KeyboardEventType.KEY_PRESSED) { event, _ ->
+//            player.position
+            when (event.code) {
+                UP -> player.moveUpBy(1)
+                DOWN -> player.moveDownBy(1)
+                LEFT -> player.moveLeftBy(1)
+                RIGHT -> player.moveRightBy(1)
+                else -> Pass
+            }
+            Processed
+        }
     }
 
     private fun addHouse(ga: GameArea<Tile, Block<Tile>>, topLeft: Position, size: Size) {
@@ -288,14 +299,16 @@ object TopDownObliqueWorldExample {
         ga.setBlockAt(doorPos.toPosition3D(0), FLOOR_BLOCK)
         ga.setBlockAt(doorPos.toPosition3D(1), EMPTY_BLOCK)
         if (size.width > 8 && houseHeight > 3) {
-            val frontWindowPositions = listOf(doorPos.withRelativeX(-2).toPosition3D(1),
+            val frontWindowPositions = listOf(
+                doorPos.withRelativeX(-2).toPosition3D(1),
                 doorPos.withRelativeX(-2).toPosition3D(2),
                 doorPos.withRelativeX(-3).toPosition3D(1),
                 doorPos.withRelativeX(-3).toPosition3D(2),
                 doorPos.withRelativeX(2).toPosition3D(1),
                 doorPos.withRelativeX(2).toPosition3D(2),
                 doorPos.withRelativeX(3).toPosition3D(1),
-                doorPos.withRelativeX(3).toPosition3D(2))
+                doorPos.withRelativeX(3).toPosition3D(2)
+            )
             val backWindowPositions = frontWindowPositions.map { it.withRelativeY(-size.height + 1) }
             frontWindowPositions.forEach {
                 ga.setBlockAt(it, GLASS_BLOCK_FRONT)
@@ -308,10 +321,12 @@ object TopDownObliqueWorldExample {
         val roofSize = size.withRelativeHeight(2).withRelativeWidth(2)
         repeat(Math.min(size.width, size.height) / 2 + 1) { idx ->
             Shapes.buildRectangle(roofOffset, roofSize.minus(Sizes.create(idx * 2, idx * 2))).positions().forEach {
-                ga.setBlockAt(it.plus(roofOffset)
-                    .withRelativeX(idx)
-                    .withRelativeY(idx)
-                    .toPosition3D(houseHeight + idx), roof())
+                ga.setBlockAt(
+                    it.plus(roofOffset)
+                        .withRelativeX(idx)
+                        .withRelativeY(idx)
+                        .toPosition3D(houseHeight + idx), roof()
+                )
             }
         }
     }

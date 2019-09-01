@@ -1,8 +1,13 @@
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
 import org.hexworks.zircon.api.*
+import org.slf4j.LoggerFactory
 
 
 fun main(args: Array<String>) {
+    (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger).level = Level.INFO
+    
     val tileGrid = SwingApplications.startTileGrid(
         AppConfigs.newConfig()
             .withSize(Sizes.create(20, 8))
