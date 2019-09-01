@@ -2,9 +2,9 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import org.hexworks.zircon.api.*
 import org.hexworks.zircon.api.color.ANSITileColor
+import org.hexworks.zircon.api.data.CharacterTile
 import org.hexworks.zircon.api.data.Position
 import org.hexworks.zircon.api.data.Size
-import org.hexworks.zircon.api.data.Tile
 import org.hexworks.zircon.api.extensions.handleKeyboardEvents
 import org.hexworks.zircon.api.graphics.Symbols
 import org.hexworks.zircon.api.grid.TileGrid
@@ -21,11 +21,9 @@ object AkMapTest {
     private val random = Random(5643218)
 
     private val BLACK = TileColors.fromString("#140c1c")
-    private val DARK_BROWN = TileColors.fromString("#442434")
     private val DARK_GREY = TileColors.fromString("#4e4a4e")
     private val BROWN = TileColors.fromString("#854c30")
     private val DARK_GREEN = TileColors.fromString("#346524")
-    private val RED = TileColors.fromString("#d04648")
     private val GREY = TileColors.fromString("#757161")
     private val BLUE = TileColors.fromString("#597dce")
     private val LIGHT_GREEN = TileColors.fromString("#6daa2c")
@@ -59,12 +57,6 @@ object AkMapTest {
             )
         )
 
-    private val ROOF_TOP = Tiles.defaultTile()
-        .withCharacter(Symbols.DOUBLE_LINE_HORIZONTAL)
-        .withModifiers(Borders.newBuilder().withBorderColor(BROWN).build())
-        .withBackgroundColor(BROWN)
-        .withForegroundColor(RED)
-
     private val GRASS_TILES = listOf(
         Tiles.defaultTile()
             .withCharacter(',')
@@ -86,30 +78,11 @@ object AkMapTest {
     })
 
 
-    private fun wallOutside() = Tiles.defaultTile()
-        .withCharacter(Symbols.DOUBLE_LINE_HORIZONTAL_SINGLE_LINE_CROSS)
-        .withBackgroundColor(BROWN.darkenByPercent(random.nextDouble(.15)))
-        .withForegroundColor(CREAM.lightenByPercent(random.nextDouble(.15)))
-
-    private fun wallInside() = Tiles.defaultTile()
-        .withCharacter(Symbols.DOUBLE_LINE_VERTICAL_SINGLE_LINE_CROSS)
-        .withBackgroundColor(DARK_GREY.darkenByPercent(random.nextDouble(.25)))
-        .withForegroundColor(GREY.lightenByPercent(random.nextDouble(.25)))
-
-    private fun wallFront() = Blocks.newBuilder<Tile>()
-        .withLayers(EMPTY)
-        .withTop(WALL_TOP)
-        .withFront(wallOutside())
-        .withBack(wallInside())
-        .withEmptyTile(EMPTY)
-        .build()
-
+    private val tileGrid = SwingApplications.startTileGrid()
 
     @JvmStatic
     fun main(args: Array<String>) {
         (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger).level = Level.INFO
-
-        val tileGrid = SwingApplications.startTileGrid()
 
         addGrass(tileGrid)
 
@@ -146,13 +119,11 @@ object AkMapTest {
 
 
         tileGrid.handleKeyboardEvents(KeyboardEventType.KEY_PRESSED) { event, _ ->
-            println(player.position)
-            //            player.position
-            when (event.code) {
-                UP -> player.moveUpBy(1)
-                DOWN -> player.moveDownBy(1)
-                LEFT -> player.moveLeftBy(1)
-                RIGHT -> player.moveRightBy(1)
+            when {
+                event.code == UP && isOpen(player.position.plus(pos(0, -1))) -> player.moveUpBy(1)
+                event.code == DOWN && isOpen(player.position.plus(pos(0, 1))) -> player.moveDownBy(1)
+                event.code == LEFT && isOpen(player.position.plus(pos(-1, 0))) -> player.moveLeftBy(1)
+                event.code == RIGHT && isOpen(player.position.plus(pos(1, 0))) -> player.moveRightBy(1)
                 else -> Pass
             }
             Processed
@@ -170,18 +141,18 @@ object AkMapTest {
         Shapes.buildFilledRectangle(topLeft, size).positions().forEach {
             tileGrid.setTileAt(it, FLOOR)
         }
-            Shapes.buildLine(bottomLeft, bottomRight).positions().forEach { pos ->
-                tileGrid.setTileAt(pos, WALL_TOP)
-            }
-            Shapes.buildLine(topLeft, topRight).positions().forEach { pos ->
-                tileGrid.setTileAt(pos, WALL_TOP)
-            }
-            Shapes.buildLine(topLeft.withRelativeY(1), bottomLeft.withRelativeY(-1)).positions().forEach { pos ->
-                tileGrid.setTileAt(pos, WALL_TOP)
-            }
-            Shapes.buildLine(topRight.withRelativeY(1), bottomRight.withRelativeY(-1)).positions().forEach { pos ->
-                tileGrid.setTileAt(pos, WALL_TOP)
-            }
+        Shapes.buildLine(bottomLeft, bottomRight).positions().forEach { pos ->
+            tileGrid.setTileAt(pos, WALL_TOP)
+        }
+        Shapes.buildLine(topLeft, topRight).positions().forEach { pos ->
+            tileGrid.setTileAt(pos, WALL_TOP)
+        }
+        Shapes.buildLine(topLeft.withRelativeY(1), bottomLeft.withRelativeY(-1)).positions().forEach { pos ->
+            tileGrid.setTileAt(pos, WALL_TOP)
+        }
+        Shapes.buildLine(topRight.withRelativeY(1), bottomRight.withRelativeY(-1)).positions().forEach { pos ->
+            tileGrid.setTileAt(pos, WALL_TOP)
+        }
         val doorPos = topLeft.withRelativeY(size.height - 1).withRelativeX((size.width - 1) / 2)
         tileGrid.setTileAt(doorPos, FLOOR)
         tileGrid.setTileAt(doorPos, EMPTY)
@@ -212,4 +183,18 @@ object AkMapTest {
         }
     }
 
+    private fun isOpen(pos: Position): Boolean {
+        val tile = tileGrid.getTileAt(pos).get()
+        return when {
+            tile == EMPTY -> true
+            tile == FLOOR -> true
+            tile is CharacterTile && ",.\"".toCharArray().contains(tile.character) -> true
+            else -> false
+        }
+    }
+
+}
+
+fun pos(x: Int, y: Int): Position {
+    return Positions.create(x, y)
 }

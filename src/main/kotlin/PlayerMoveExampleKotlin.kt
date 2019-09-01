@@ -11,6 +11,7 @@ import org.hexworks.zircon.api.uievent.KeyCode
 import org.hexworks.zircon.api.uievent.KeyboardEventType.KEY_PRESSED
 import org.hexworks.zircon.api.uievent.Pass
 import org.hexworks.zircon.api.uievent.Processed
+import sun.audio.AudioPlayer.player
 
 object PlayerMoveExampleKotlin {
 
