@@ -40,6 +40,7 @@ import kotlin.random.Random
 object TopDownObliqueWorldExample {
 
     private val WORLD_SIZE = Sizes.create3DSize(100, 100, 100)
+    private val VISIBLE_SIZE = Sizes.create(50, 50)
     private val VISIBLE_Z_LEVELS = 5
     private val random = Random(5643218)
 
@@ -181,7 +182,7 @@ object TopDownObliqueWorldExample {
                 .build()))
 
         val panel = Components.panel()
-            .withSize(screen.size)
+            .withSize(VISIBLE_SIZE)
             .withDecorations(box(boxType = BoxType.DOUBLE, title = "World"))
             .build()
 
