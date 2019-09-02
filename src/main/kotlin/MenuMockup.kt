@@ -10,13 +10,13 @@ import org.hexworks.zircon.api.grid.TileGrid
 import org.hexworks.zircon.api.screen.Screen
 import org.hexworks.zircon.api.uievent.*
 import java.awt.Dimension
-import java.util.*
 
 object MenuMockup {
 
 
     private val TILESET = CP437TilesetResources.rexPaint20x20()
     private val THEME = ColorThemes.arc()
+    private val ALT_THEME = ColorThemes.war()
     private var isMapScreen = true
 
     var mapScreen: Screen? = null
@@ -129,22 +129,6 @@ object MenuMockup {
         createPanel("Right Leg", Positions.create(center + fourthOffset, 2 * verticalOffset), panelSize, screen)
 
 
-//        val difficultyPanel = Components.panel()
-//            .withSize(Sizes.create((terminalSize.width - panelSpacing) / 3, 9))
-//            .withPosition(Positions.create(panelSpacing, panelSpacing))
-//            .withDecorations(box(BoxType.LEFT_RIGHT_DOUBLE, "List"))
-//            .build()
-//
-//        val difficultyRadio = Components.radioButtonGroup()
-//            .withSize(difficultyPanel.size.minus(Sizes.create(2, 2)))
-//            .build()
-//
-//        listOf("One", "Two", "Three").forEach { diff -> difficultyRadio.addOption(diff, diff) }
-//
-//        difficultyPanel.addComponent(difficultyRadio)
-//        screen.addComponent(difficultyPanel)
-
-
         screen.applyColorTheme(THEME)
         return screen
     }
@@ -180,7 +164,25 @@ object MenuMockup {
             .build()
         panel.addComponent(weight)
 
+        val handler = MousePanelHandler(panel, name)
+        panel.handleMouseEvents(MouseEventType.MOUSE_CLICKED, handler)
+        panel.handleMouseEvents(MouseEventType.MOUSE_ENTERED, handler)
+        panel.handleMouseEvents(MouseEventType.MOUSE_EXITED, handler)
+
         screen.addComponent(panel)
+    }
+
+    private class MousePanelHandler(val panel: Panel, val name: String) : MouseEventHandler {
+        override fun handle(event: MouseEvent, phase: UIEventPhase): UIEventResponse {
+            when (event.type) {
+                MouseEventType.MOUSE_ENTERED -> panel.applyColorTheme(ALT_THEME)
+                MouseEventType.MOUSE_EXITED-> panel.applyColorTheme(THEME)
+                MouseEventType.MOUSE_CLICKED-> println("Clicked panel for $name")
+                else -> Pass
+            }
+            return UIEventResponses.processed()
+        }
+
     }
 
 }
