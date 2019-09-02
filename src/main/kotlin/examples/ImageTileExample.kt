@@ -1,3 +1,4 @@
+package org.hexworks.zircon.examples
 
 import org.hexworks.zircon.api.CharacterTileStrings
 import org.hexworks.zircon.api.ImageDictionaryTilesetResources
@@ -7,7 +8,7 @@ import org.hexworks.zircon.api.Tiles
 
 object ImageTileExample {
 
-    private val imageDictionary = ImageDictionaryTilesetResources.loadTilesetFromFilesystem("./src/main/resources/image_dictionary")
+    private val imageDictionary = ImageDictionaryTilesetResources.loadTilesetFromFilesystem("zircon.jvm.examples/src/main/resources/image_dictionary")
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -15,14 +16,14 @@ object ImageTileExample {
         val tileGrid = SwingApplications.startTileGrid()
 
         tileGrid.draw(CharacterTileStrings.newBuilder()
-            .withText("You can see an image tile below...")
-            .build())
+                .withText("You can see an image tile below...")
+                .build())
 
 
         val imageTile = Tiles.newBuilder()
-            .withTileset(imageDictionary)
-            .withName("")
-            .buildImageTile()
+                .withTileset(imageDictionary)
+                .withName("hexworks_logo.png")
+                .buildImageTile()
 
         // TODO: fix positioning
 

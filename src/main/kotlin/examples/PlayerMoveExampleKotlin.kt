@@ -11,15 +11,14 @@ import org.hexworks.zircon.api.uievent.KeyCode
 import org.hexworks.zircon.api.uievent.KeyboardEventType.KEY_PRESSED
 import org.hexworks.zircon.api.uievent.Pass
 import org.hexworks.zircon.api.uievent.Processed
-import sun.audio.AudioPlayer.player
 
 object PlayerMoveExampleKotlin {
 
     private val PLAYER_TILE = Tiles.newBuilder()
-        .withBackgroundColor(ANSITileColor.BLACK)
-        .withForegroundColor(ANSITileColor.WHITE)
-        .withCharacter('@')
-        .buildCharacterTile()
+            .withBackgroundColor(ANSITileColor.BLACK)
+            .withForegroundColor(ANSITileColor.WHITE)
+            .withCharacter('@')
+            .buildCharacterTile()
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -27,10 +26,10 @@ object PlayerMoveExampleKotlin {
         val tileGrid = SwingApplications.startTileGrid()
 
         val player = Layers.newBuilder()
-            .withSize(Sizes.one())
-            .withOffset(Positions.create(tileGrid.width / 2, tileGrid.height / 2))
-            .build()
-            .fill(PLAYER_TILE)
+                .withSize(Sizes.one())
+                .withOffset(Positions.create(tileGrid.width / 2, tileGrid.height / 2))
+                .build()
+                .fill(PLAYER_TILE)
 
         tileGrid.handleKeyboardEvents(KEY_PRESSED) { event, _ ->
             when (event.code) {

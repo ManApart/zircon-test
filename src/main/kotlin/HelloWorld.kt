@@ -11,6 +11,7 @@ fun main(args: Array<String>) {
     val tileGrid = SwingApplications.startTileGrid(
         AppConfigs.newConfig()
             .withSize(Sizes.create(20, 8))
+//            .withDefaultTileset(CP437TilesetResources.wanderlust16x16())
             .withDefaultTileset(CP437TilesetResources.wanderlust16x16())
             .build()
     )
