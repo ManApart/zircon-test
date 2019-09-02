@@ -198,3 +198,7 @@ object AkMapTest {
 fun pos(x: Int, y: Int): Position {
     return Positions.create(x, y)
 }
+
+fun silenceLogs() {
+    (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger).level = ch.qos.logback.classic.Level.INFO
+}

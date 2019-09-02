@@ -52,6 +52,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static org.hexworks.zircon.examples.GameMockupExample.silenceLogsJava;
 import static org.hexworks.zircon.internal.resource.ColorThemeResource.AFTERGLOW;
 import static org.hexworks.zircon.internal.resource.ColorThemeResource.AFTER_THE_HEIST;
 import static org.hexworks.zircon.internal.resource.ColorThemeResource.AMIGA_OS;
@@ -85,11 +86,11 @@ public class FullExample {
     private static final PanelBuilder PANEL_TEMPLATE = PanelBuilder.Companion.newBuilder().withSize(PANEL_SIZE);
 
     public static void main(String[] args) {
+        silenceLogsJava();
 
         Application app = SwingApplications.startApplication(AppConfigs.newConfig()
                 .withDefaultTileset(TILESET)
                 .withSize(SCREEN_SIZE)
-                .withDebugMode(true)
                 .enableBetaFeatures()
                 .build());
 

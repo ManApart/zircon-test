@@ -1,5 +1,6 @@
 package org.hexworks.zircon.examples;
 
+import ch.qos.logback.classic.Logger;
 import org.hexworks.zircon.api.*;
 import org.hexworks.zircon.api.component.Button;
 import org.hexworks.zircon.api.component.Label;
@@ -12,6 +13,7 @@ import org.hexworks.zircon.api.graphics.Symbols;
 import org.hexworks.zircon.api.grid.TileGrid;
 import org.hexworks.zircon.api.resource.TilesetResource;
 import org.hexworks.zircon.api.screen.Screen;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -38,7 +40,9 @@ public class GameMockupExample {
     private static final ColorTheme THEME = ColorThemes.arc();
 
     public static void main(String[] args) {
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        silenceLogsJava();
+//        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        Dimension screenSize = new Dimension(1000, 800);
         double columns = screenSize.getWidth() / TILESET.getWidth();
         double rows = screenSize.getHeight() / TILESET.getHeight();
         Size terminalSize = Sizes.create((int) columns, (int) rows);
@@ -47,7 +51,7 @@ public class GameMockupExample {
                 .withDefaultTileset(TILESET)
                 .withSize(terminalSize)
                 .withDebugMode(true)
-                .fullScreen()
+//                .fullScreen()
                 .build());
 
         // ==========
@@ -153,4 +157,10 @@ public class GameMockupExample {
         mainMenuScreen.display();
 
     }
+
+    public static void silenceLogsJava() {
+        ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(ch.qos.logback.classic.Level.INFO);
+    }
 }
+
+
