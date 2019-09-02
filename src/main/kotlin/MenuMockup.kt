@@ -1,4 +1,6 @@
 import org.hexworks.zircon.api.*
+import org.hexworks.zircon.api.component.Panel
+import org.hexworks.zircon.api.data.Position
 import org.hexworks.zircon.api.data.Size
 import org.hexworks.zircon.api.extensions.box
 import org.hexworks.zircon.api.extensions.handleComponentEvents
@@ -41,7 +43,8 @@ object MenuMockup {
         inventoryScreen = createInventoryScreen(tileGrid, terminalSize)
 
 
-        mapScreen?.display()
+//        mapScreen?.display()
+        inventoryScreen?.display()
 
 
         tileGrid.handleKeyboardEvents(KeyboardEventType.KEY_PRESSED) { event, _ ->
@@ -111,25 +114,73 @@ object MenuMockup {
 
         screen.addComponent(backButton)
 
+        val panelSize = Sizes.create(terminalSize.width / 3 - panelSpacing, 9)
+        val verticalOffset = panelSize.height + panelSpacing * 2
+        val thirdOffset = terminalSize.width / 3
+        val fourthOffset = terminalSize.width / 6
+        val center = terminalSize.width / 2 - panelSize.width / 2
 
-        val difficultyPanel = Components.panel()
-            .withSize(Sizes.create((terminalSize.width - panelSpacing) / 3, 9))
-            .withPosition(Positions.create(panelSpacing, panelSpacing))
-            .withDecorations(box(BoxType.LEFT_RIGHT_DOUBLE, "List"))
-            .build()
 
-        val difficultyRadio = Components.radioButtonGroup()
-            .withSize(difficultyPanel.size.minus(Sizes.create(2, 2)))
-            .build()
+        createPanel("Helmet", Positions.create(center, panelSpacing), panelSize, screen)
+        createPanel("Chest", Positions.create(center, verticalOffset), panelSize, screen)
+        createPanel("Left Arm", Positions.create(center - thirdOffset, verticalOffset), panelSize, screen)
+        createPanel("Right Arm", Positions.create(center + thirdOffset, verticalOffset), panelSize, screen)
+        createPanel("Left Leg", Positions.create(center - fourthOffset, 2 * verticalOffset), panelSize, screen)
+        createPanel("Right Leg", Positions.create(center + fourthOffset, 2 * verticalOffset), panelSize, screen)
 
-        listOf("One", "Two", "Three").forEach { diff -> difficultyRadio.addOption(diff, diff) }
 
-        difficultyPanel.addComponent(difficultyRadio)
-        screen.addComponent(difficultyPanel)
+//        val difficultyPanel = Components.panel()
+//            .withSize(Sizes.create((terminalSize.width - panelSpacing) / 3, 9))
+//            .withPosition(Positions.create(panelSpacing, panelSpacing))
+//            .withDecorations(box(BoxType.LEFT_RIGHT_DOUBLE, "List"))
+//            .build()
+//
+//        val difficultyRadio = Components.radioButtonGroup()
+//            .withSize(difficultyPanel.size.minus(Sizes.create(2, 2)))
+//            .build()
+//
+//        listOf("One", "Two", "Three").forEach { diff -> difficultyRadio.addOption(diff, diff) }
+//
+//        difficultyPanel.addComponent(difficultyRadio)
+//        screen.addComponent(difficultyPanel)
 
 
         screen.applyColorTheme(THEME)
         return screen
+    }
+
+    private fun createPanel(name: String, position: Position, size: Size, screen: Screen) {
+        val panel = Components.panel()
+            .withSize(size)
+            .withPosition(position)
+            .withDecorations(box(BoxType.LEFT_RIGHT_DOUBLE, name))
+            .build()
+
+
+        val health = Components.label().withText("Health: 9/10")
+            .withPosition(Position.zero())
+            .build()
+        panel.addComponent(health)
+
+        val armor = Components.label()
+            .withText("Armor: 2")
+            .withPosition(Positions.create(0, 1))
+            .build()
+        panel.addComponent(armor)
+
+        val speed = Components.label()
+            .withText("Speed: 1")
+            .withPosition(Positions.create(0, 2))
+            .build()
+        panel.addComponent(speed)
+
+        val weight = Components.label()
+            .withText("Weight: 3")
+            .withPosition(Positions.create(0, 3))
+            .build()
+        panel.addComponent(weight)
+
+        screen.addComponent(panel)
     }
 
 }
